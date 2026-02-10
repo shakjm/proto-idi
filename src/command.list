@@ -1,0 +1,1 @@
+verilator -Wall --sv --cc top.sv idi_sink.sv --exe sim_main.cpp --build
