@@ -1,0 +1,620 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MBTI-Style Personality Reflection (Unofficial) + Tailored Coaching Report</title>
+<style>
+  :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color-scheme: dark; }
+  body { margin:0; background:#0b1220; color:#e9eefc; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 18px; }
+  .card { background:#121b33; border:1px solid #22305b; border-radius: 14px; padding: 16px; box-shadow: 0 8px 22px rgba(0,0,0,.25); }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 16px 0 10px; }
+  h3 { font-size: 15px; margin: 12px 0 8px; }
+  p { color:#b9c6f5; line-height: 1.55; margin: 8px 0; }
+  .muted { color:#93a6e8; font-size: 13px; }
+  .warn { color:#ffcf7a; }
+  .grid { display:grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 940px){ .grid { grid-template-columns: 1fr 1fr; } }
+  label { display:block; margin: 10px 0 6px; color:#d9e1ff; }
+  input[type="text"], textarea, select {
+    width:100%; padding: 10px 12px; border-radius: 12px;
+    border:1px solid #22305b; background:#0f1730; color:#e9eefc; outline: none;
+  }
+  textarea { min-height: 90px; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+  button {
+    appearance:none; border:1px solid #31467f; background:#0b1220; color:#e9eefc;
+    padding: 10px 14px; border-radius: 12px; cursor:pointer; font-weight: 700;
+  }
+  button.primary { background:#2746ff; border-color:#2746ff; }
+  .scale { display:grid; grid-template-columns: 1fr; gap:8px; margin-top: 8px; }
+  .scaleRow { display:grid; grid-template-columns: 1fr auto 1fr; gap:10px; align-items:center; }
+  .choice {
+    display:flex; gap:8px; align-items:center; padding: 10px;
+    border:1px solid rgba(147,166,232,.18); border-radius: 12px; background:#0f1730;
+  }
+  .choice b { color:#e9eefc; }
+  .sliderWrap { display:flex; flex-direction:column; gap:6px; }
+  input[type="range"] { width: 100%; }
+  .ticks { display:flex; justify-content: space-between; font-size: 12px; color:#93a6e8; }
+  .q { border:1px solid #22305b; background:#0f1730; border-radius: 12px; padding: 14px; }
+  .qHead { display:flex; justify-content: space-between; gap:10px; }
+  .badge { display:inline-block; padding: 6px 10px; border-radius: 999px; background:#192a5c; border:1px solid #31467f; font-size: 13px; }
+  .bar { height: 10px; background:#0b1220; border:1px solid rgba(147,166,232,.25); border-radius: 999px; overflow:hidden; }
+  .bar > div { height:100%; background:#2746ff; width:0%; }
+  details { margin-top: 10px; }
+  summary { cursor:pointer; color:#cfe0ff; }
+  .reportCard { background:#0f1730; border:1px solid #22305b; border-radius: 12px; padding: 14px; margin-top: 10px; }
+  ul { margin: 8px 0 0 18px; color:#b9c6f5; }
+  .tiny { font-size: 12px; color:#93a6e8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1>MBTI-Style Personality Reflection + Tailored Coaching Report (Unofficial)</h1>
+    <p class="muted warn">
+      This is <b>not</b> the official MBTI® assessment and is not a clinical tool. It's a structured self-reflection questionnaire based on the well-known
+      four preference dimensions (E/I, S/N, T/F, J/P). Treat results as a starting point for insight, not a fixed label.
+    </p>
+    <div class="btns">
+      <button class="primary" id="btnScore">Generate My Report</button>
+      <button id="btnDemo">Demo: Prefill + Generate</button>
+      <button id="btnReset">Reset</button>
+      <button id="btnExport">Export Results (JSON)</button>
+      <button id="btnImport">Import Results (JSON)</button>
+      <input type="file" id="fileImport" accept=".json" style="display:none;" />
+      <button id="btnJumpReport">Go to Report</button>
+    </div>
+    <div id="status" class="muted" style="margin-top:10px;">Fill out the profile section and answer the questions. Then click <b>Generate My Report</b>.</div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h2>Profile (used to tailor your report)</h2>
+    <div class="grid">
+      <div>
+        <label>Your role / job function</label>
+        <input type="text" id="role" placeholder="e.g., FPGA validation engineer, data engineer, product manager..." />
+      </div>
+      <div>
+        <label>Your work environment</label>
+        <select id="env">
+          <option value="hybrid">Hybrid</option>
+          <option value="remote">Remote</option>
+          <option value="onsite">On-site</option>
+          <option value="student">Student / transitioning</option>
+        </select>
+      </div>
+      <div>
+        <label>What do you want more of in work right now?</label>
+        <select id="goal">
+          <option value="growth">Growth & challenge</option>
+          <option value="focus">Focus & productivity</option>
+          <option value="leadership">Leadership & influence</option>
+          <option value="career_change">Career change</option>
+          <option value="balance">Work-life balance</option>
+        </select>
+      </div>
+      <div>
+        <label>Preferred collaboration style</label>
+        <select id="collab">
+          <option value="async">Mostly async (docs/messages)</option>
+          <option value="mix">Mix of async + meetings</option>
+          <option value="sync">Mostly synchronous (meetings/talk it out)</option>
+        </select>
+      </div>
+      <div>
+        <label>What drains you most at work?</label>
+        <textarea id="drain" placeholder="e.g., constant context switching, politics, unclear priorities, too many meetings..."></textarea>
+      </div>
+      <div>
+        <label>What do you feel you’re best at?</label>
+        <textarea id="best" placeholder="e.g., debugging, planning, creativity, mentoring, persuading..."></textarea>
+      </div>
+    </div>
+    <p class="tiny">Tip: Everything runs locally in your browser — nothing is uploaded anywhere.</p>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h2>Part A — Preference Questions (continuum)</h2>
+    <p class="muted">For each item, slide toward the statement that describes your <b>default</b> (especially under pressure).</p>
+    <div id="questions"></div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h2>Part B — Precision Check (only appears if a dimension is “too close”)</h2>
+    <p class="muted">If a dimension is near 50/50, these follow-ups help refine the signal.</p>
+    <div id="followups"></div>
+  </div>
+
+  <div class="card" id="reportCard" style="margin-top:14px;">
+    <h2>Your Tailored Coaching Report</h2>
+    <div id="report"></div>
+  </div>
+
+</div>
+
+<script>
+const ITEMS = {"EI": [["I recharge by interacting and talking things out.", "I recharge by being alone and reflecting quietly."], ["I prefer thinking out loud to clarify ideas.", "I prefer thinking privately before I speak."], ["I feel energized in lively group settings.", "I feel drained by too much social stimulation."], ["I’m quick to start conversations with new people.", "I’m selective and prefer deeper 1:1 conversations."], ["I process emotions by sharing them.", "I process emotions internally before sharing."], ["I enjoy brainstorming live with others.", "I enjoy refining ideas solo before sharing."], ["I like variety of people and networks.", "I like a small circle I trust."], ["I’m comfortable being visible and speaking up.", "I’m comfortable contributing after observing first."], ["I’m motivated by collaboration and team energy.", "I’m motivated by autonomy and focused deep work."], ["In meetings, I jump in quickly.", "In meetings, I wait for the right moment."]], "SN": [["I trust what I can verify with details and evidence.", "I trust patterns, meaning, and what could be true."], ["I focus on what is real and present today.", "I focus on possibilities and what’s coming next."], ["I prefer step-by-step instructions.", "I prefer principles and freedom to improvise."], ["I notice concrete facts others miss.", "I notice connections others miss."], ["I like proven methods over experiments.", "I like experimenting with new approaches."], ["I value practicality and reliability.", "I value innovation and potential."], ["I learn best with examples and practice.", "I learn best with concepts and models."], ["I communicate best with specifics.", "I communicate best with metaphors/vision."], ["I’m drawn to details and accuracy.", "I’m drawn to big-picture strategy."], ["When solving problems, I start with facts.", "When solving problems, I start with hypotheses."]], "TF": [["I prioritize objective criteria even if it feels tough.", "I prioritize people impact even if it complicates logic."], ["I like debates to test ideas.", "I dislike debates that feel emotionally harsh."], ["I’m comfortable giving direct feedback.", "I prefer feedback to be tactful and encouraging."], ["I decide by weighing pros/cons.", "I decide by weighing values and harmony."], ["I respect competence more than warmth.", "I respect warmth more than competence."], ["I focus on being fair (consistent rules).", "I focus on being kind (situational needs)."], ["In conflict, I want the truth clearly stated.", "In conflict, I want everyone to feel heard."], ["I’m motivated by problem-solving and results.", "I’m motivated by purpose and relationships."], ["I can detach emotions to make decisions.", "I integrate emotions as important data."], ["I prefer straightforward communication over cushioning.", "I prefer considerate communication over bluntness."]], "JP": [["I like plans, schedules, and closure.", "I like options, flexibility, and keeping things open."], ["I feel best when things are organized.", "I feel best when I can adapt in the moment."], ["I prefer to decide early.", "I prefer to decide late with more information."], ["I work steadily toward deadlines.", "I work in bursts near deadlines."], ["I enjoy finishing tasks before starting new ones.", "I enjoy exploring multiple tasks in parallel."], ["I like clear roles and expectations.", "I like fluid roles and learning as we go."], ["I get stressed by last-minute changes.", "I get bored by rigid routines."], ["I prefer predictability.", "I prefer spontaneity."], ["I naturally create checklists.", "I naturally improvise and iterate."], ["I measure success by completion.", "I measure success by discovery/learning."]]};
+const FOLLOWUPS = {"EI": [["At work, you’d rather:", "work through issues with people in real-time.", "work through issues privately, then share a conclusion."], ["After a long week, you prefer:", "a social weekend to reset.", "quiet time to reset."]], "SN": [["When learning something new, you prefer:", "practical examples first.", "the theory/why first."], ["You’re more convinced by:", "track record and data.", "vision and plausible direction."]], "TF": [["When someone is upset, you tend to:", "solve the problem causing it.", "validate feelings first, then solve."], ["In performance reviews, you prioritize:", "clear, actionable improvement points.", "motivation and strengths encouragement."]], "JP": [["You feel calmer when:", "the plan is set.", "you can keep options open."], ["Your workspace is usually:", "structured and organized.", "functional chaos / flexible."]]};
+
+function el(tag, attrs={}, html="") {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+  if (html) e.innerHTML = html;
+  return e;
+}
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+function buildQuestions() {
+  const wrap = document.getElementById("questions");
+  wrap.innerHTML = "";
+  const order = ["EI","SN","TF","JP"];
+  order.forEach(dim => {
+    const title = {"EI":"E/I", "SN":"S/N", "TF":"T/F", "JP":"J/P"}[dim];
+    const card = el("div", {"class":"reportCard"});
+    card.appendChild(el("h3", {}, `Dimension ${title}`));
+    ITEMS[dim].forEach((pair, idx) => {
+      const qid = `${dim}_${idx}`;
+      const q = el("div", {"class":"q", "data-qid": qid, "data-dim": dim});
+      q.appendChild(el("div", {"class":"qHead"}, `<span class="badge">${dim}</span><span class="muted">Item ${idx+1}/10</span>`));
+
+      const [left, right] = pair;
+      const row = el("div", {"class":"scale"});
+      const row2 = el("div", {"class":"scaleRow"});
+      row2.appendChild(el("div", {"class":"choice"}, `<b>Left</b><div class="muted" style="margin-left:6px;">${left}</div>`));
+
+      const sliderWrap = el("div", {"class":"sliderWrap"});
+      const slider = el("input", {"type":"range","min":"-3","max":"3","step":"1","value":"0","name":`s_${qid}`});
+      const ticks = el("div", {"class":"ticks"}, `<span>-3</span><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span>`);
+      const val = el("div", {"class":"muted tiny", "id":`val_${qid}`}, "Neutral (0)");
+      slider.addEventListener("input", () => {
+        const v = Number(slider.value);
+        val.textContent = v === 0 ? "Neutral (0)" : (v < 0 ? `Leaning Left (${v})` : `Leaning Right (+${v})`);
+      });
+      sliderWrap.appendChild(val);
+      sliderWrap.appendChild(slider);
+      sliderWrap.appendChild(ticks);
+
+      row2.appendChild(sliderWrap);
+      row2.appendChild(el("div", {"class":"choice"}, `<b>Right</b><div class="muted" style="margin-left:6px;">${right}</div>`));
+      row.appendChild(row2);
+      q.appendChild(row);
+      card.appendChild(q);
+    });
+    wrap.appendChild(card);
+  });
+}
+
+function computeScores(includeFollowups=false) {
+  const dims = {"EI":0,"SN":0,"TF":0,"JP":0};
+  document.querySelectorAll('input[type="range"][name^="s_"]').forEach(sl => {
+    const qid = sl.name.replace("s_","");
+    const dim = qid.split("_")[0];
+    dims[dim] += Number(sl.value);
+  });
+  if (includeFollowups) {
+    document.querySelectorAll('input[type="radio"][name^="fu_"]:checked').forEach(r => {
+      const dim = r.name.split("_")[1];
+      dims[dim] += Number(r.value);
+    });
+  }
+  return dims;
+}
+
+function typeFromDims(dims) {
+  const EI = dims.EI <= 0 ? "E" : "I";
+  const SN = dims.SN <= 0 ? "S" : "N";
+  const TF = dims.TF <= 0 ? "T" : "F";
+  const JP = dims.JP <= 0 ? "J" : "P";
+  return EI+SN+TF+JP;
+}
+
+function confidenceFromDim(score) {
+  const a = Math.abs(score);
+  if (a >= 22) return {"label":"High", "pct": 85};
+  if (a >= 14) return {"label":"Medium", "pct": 70};
+  if (a >= 8) return {"label":"Low", "pct": 58};
+  return {"label":"Very Low", "pct": 52};
+}
+
+function needsFollowup(score) { return Math.abs(score) <= 8; }
+
+function buildFollowups(dims) {
+  const wrap = document.getElementById("followups");
+  wrap.innerHTML = "";
+  const needed = [];
+  if (needsFollowup(dims.EI)) needed.push("EI");
+  if (needsFollowup(dims.SN)) needed.push("SN");
+  if (needsFollowup(dims.TF)) needed.push("TF");
+  if (needsFollowup(dims.JP)) needed.push("JP");
+
+  if (needed.length === 0) {
+    wrap.innerHTML = `<p class="muted">No precision questions needed — your preferences are reasonably clear.</p>`;
+    return needed;
+  }
+
+  needed.forEach(dim => {
+    const card = el("div", {"class":"reportCard"});
+    card.appendChild(el("h3", {}, `Precision questions for ${dim}`));
+    FOLLOWUPS[dim].forEach((q, idx) => {
+      const [prompt, left, right] = q;
+      const name = `fu_${dim}_${idx}`;
+      const block = el("div", {"class":"q"});
+      block.appendChild(el("div", {"class":"muted"}, prompt));
+      block.appendChild(el("label", {"class":"choice"}, `<input type="radio" name="${name}" value="-2" /> <span style="margin-left:8px;">${left}</span>`));
+      block.appendChild(el("label", {"class":"choice"}, `<input type="radio" name="${name}" value="+2" /> <span style="margin-left:8px;">${right}</span>`));
+      card.appendChild(block);
+    });
+    wrap.appendChild(card);
+  });
+  return needed;
+}
+
+function getProfile() {
+  return {
+    role: (document.getElementById("role").value || "your role").trim(),
+    env: document.getElementById("env").value,
+    goal: document.getElementById("goal").value,
+    collab: document.getElementById("collab").value,
+    drain: (document.getElementById("drain").value || "").trim(),
+    best: (document.getElementById("best").value || "").trim(),
+  };
+}
+function envText(env) { return {"remote":"remote work","hybrid":"a hybrid setup","onsite":"an on-site environment","student":"a transition period"}[env] || "your environment"; }
+function goalText(goal) { return {"growth":"growth and challenge","focus":"focus and productivity","leadership":"leadership and influence","career_change":"a career pivot","balance":"work-life balance"}[goal] || "your goals"; }
+function collabText(c) { return {"async":"async, written-first collaboration","mix":"a mix of async and meetings","sync":"synchronous, talk-it-out collaboration"}[c] || "collaboration"; }
+
+function renderDimBar(labelLeft, labelRight, score) {
+  const pct = 50 + (clamp(score, -34, 34) / 34) * 50;
+  const conf = confidenceFromDim(score);
+  return `
+    <div style="margin-top:10px;">
+      <div class="muted" style="display:flex; justify-content: space-between;">
+        <span><b>${labelLeft}</b></span><span><b>${labelRight}</b></span>
+      </div>
+      <div class="bar"><div style="width:${pct}%"></div></div>
+      <div class="muted tiny">Score ${score} · Confidence: <b>${conf.label}</b> (~${conf.pct}%)</div>
+    </div>
+  `;
+}
+
+function reportForType(type, profile, dims) {
+  const role = profile.role;
+  const env = envText(profile.env);
+  const goal = goalText(profile.goal);
+  const collab = collabText(profile.collab);
+
+  const intro = `
+    <div class="reportCard">
+      <h3>Your likely type: <span class="badge">${type}</span></h3>
+      <p>This report is tailored for <b>${role}</b> in <b>${env}</b>, aiming for <b>${goal}</b>, with <b>${collab}</b>.</p>
+      ${profile.best ? `<p><b>What you said you're best at:</b> ${profile.best}</p>` : ""}
+      ${profile.drain ? `<p><b>What drains you:</b> ${profile.drain}</p>` : ""}
+      <details>
+        <summary>How to interpret this (important)</summary>
+        <p class="muted">
+          This is a preference profile, not a skill rating. You can do both sides of every dimension; preferences show what feels most natural,
+          especially under stress. Use this to design better work habits, communication, and role-fit — not to limit yourself.
+        </p>
+      </details>
+    </div>
+  `;
+
+  const dimCards = `
+    <div class="reportCard">
+      <h3>Preference scores</h3>
+      ${renderDimBar("Extraversion (E)", "Introversion (I)", dims.EI)}
+      ${renderDimBar("Sensing (S)", "Intuition (N)", dims.SN)}
+      ${renderDimBar("Thinking (T)", "Feeling (F)", dims.TF)}
+      ${renderDimBar("Judging (J)", "Perceiving (P)", dims.JP)}
+    </div>
+  `;
+
+  function letterSection(letter) {
+    const blocks = {
+      "E": {
+        title: "E — Extraversion: external processing & momentum",
+        p: [
+          "You tend to clarify ideas through interaction. Energy rises when you can speak, collaborate, and move things forward in real time.",
+          `In ${role}, this often shows up as quick alignment: asking questions live, unblocking work through short syncs, and maintaining momentum across stakeholders.`,
+          `Growth tip: protect focus blocks. In ${env}, schedule deep work windows so the social/meeting layer doesn't fragment your best output.`
+        ]
+      },
+      "I": {
+        title: "I — Introversion: internal processing & depth",
+        p: [
+          "You tend to clarify ideas through reflection. You get your best thinking when you have space to process before speaking.",
+          `In ${role}, this often shows up as strong analysis and craft: you prepare, anticipate issues, and deliver thoughtful solutions - especially in complex technical work.`,
+          `Growth tip: make your thinking visible. In ${env}, share short written updates early so others don't mistake quiet depth for lack of progress.`
+        ]
+      },
+      "S": {
+        title: "S — Sensing: accuracy, reality, and reliable execution",
+        p: [
+          "You prefer concrete facts, details, and what's proven. You trust what can be verified and you notice practical constraints early.",
+          `At work, you tend to strengthen quality: catching edge cases, validating assumptions, and ensuring the real system matches the plan - highly valuable in engineering and operations.`,
+          "Growth tip: pair details with direction. Add one sentence of so-what / next to your updates so others see the bigger implication of your precision."
+        ]
+      },
+      "N": {
+        title: "N — Intuition: patterns, meaning, and future direction",
+        p: [
+          "You prefer patterns and possibilities. You enjoy connecting ideas and anticipating what could be next.",
+          `In ${role}, you often add value by proposing smarter approaches, spotting trends, and turning messy signals into a direction. This is powerful for innovation and strategy.`,
+          "Growth tip: ground your vision. Add one concrete experiment or metric each week so your ideas become actionable and trusted by detail-oriented teammates."
+        ]
+      },
+      "T": {
+        title: "T — Thinking: objective decisions and clear standards",
+        p: [
+          "You prioritize logic, consistency, and objective criteria. You want decisions that hold up under scrutiny.",
+          `In ${role}, this often looks like strong debugging, root-cause thinking, and decision clarity. You're often the one who can separate signal from noise.`,
+          "Growth tip: deliver truth with care. Add a quick empathy bridge (I know this is frustrating...) so your clarity lands without collateral damage."
+        ]
+      },
+      "F": {
+        title: "F — Feeling: values-based decisions and people impact",
+        p: [
+          "You prioritize values, harmony, and how decisions affect people. You care about belonging and morale.",
+          `In ${role}, you often improve team performance by improving the human system: trust, motivation, psychological safety, and stakeholder alignment.`,
+          "Growth tip: keep standards explicit. Pair care with clear criteria so kindness doesn't turn into ambiguity."
+        ]
+      },
+      "J": {
+        title: "J — Judging: structure, closure, and steady progress",
+        p: [
+          "You prefer planning, timelines, and closure. You feel calm when expectations are clear and you can track completion.",
+          `In ${role}, you often excel at execution: scoping, managing risk, and delivering reliably - which becomes a leadership signal in any team.`,
+          "Growth tip: leave a flexibility buffer. Build change budget into your plan so surprises don't feel like personal failure."
+        ]
+      },
+      "P": {
+        title: "P — Perceiving: flexibility, exploration, and adaptive problem-solving",
+        p: [
+          "You prefer options and adaptability. You're comfortable iterating and deciding with more information.",
+          `In ${role}, you often shine in ambiguity: troubleshooting, rapid prototyping, and responding to shifting constraints. You're good at keeping possibilities alive.`,
+          "Growth tip: create lightweight structure. Use timeboxes and definition-of-done checklists so flexibility still produces visible outcomes."
+        ]
+      }
+    };
+    const b = blocks[letter];
+    return `
+      <div class="reportCard">
+        <h3>${b.title}</h3>
+        ${b.p.map(x=>`<p>${x}</p>`).join("")}
+      </div>
+    `;
+  }
+
+  const letterCards = type.split("").map(letterSection).join("");
+
+  const workplace = `
+    <div class="reportCard">
+      <h3>Workplace playbook (tailored)</h3>
+      <ul>
+        <li><b>Communication:</b> Use ${type[0]==="I" ? "written-first updates + scheduled deep work" : "short syncs + visible momentum"} to match your energy style.</li>
+        <li><b>Problem solving:</b> Pair ${type[1]==="N" ? "big-picture hypotheses" : "verified facts"} with one concrete experiment/metric each week.</li>
+        <li><b>Decision style:</b> If you lean ${type[2]==="T" ? "T" : "F"}, add the missing half: ${type[2]==="T" ? "impact on people & buy-in" : "clear criteria & tradeoffs"}.</li>
+        <li><b>Execution:</b> If you lean ${type[3]==="J" ? "J" : "P"}, use a ${type[3]==="J" ? "change buffer + flexibility window" : "timebox + definition-of-done"} to stay effective.</li>
+      </ul>
+    </div>
+  `;
+
+  const life = `
+    <div class="reportCard">
+      <h3>Personal growth (relationships, habits, motivation)</h3>
+      <ul>
+        <li><b>Conflict repair:</b> If you lean ${type[2]==="T" ? "T" : "F"}, practice ${type[2]==="T" ? "validation before solutions" : "clear requests and boundaries"}.</li>
+        <li><b>Energy management:</b> If you lean ${type[0]==="I" ? "I" : "E"}, schedule ${type[0]==="I" ? "solitude to recharge" : "connection to recharge"} as a non-negotiable.</li>
+        <li><b>Motivation:</b> If you lean ${type[1]==="N" ? "N" : "S"}, motivate yourself using ${type[1]==="N" ? "vision and meaning" : "visible progress and tangible wins"}.</li>
+      </ul>
+    </div>
+  `;
+
+  const next = `
+    <div class="reportCard">
+      <h3>What to do next</h3>
+      <ul>
+        <li><b>Validate:</b> Ask 2 people who know you well how you behave under pressure (not your ideal self).</li>
+        <li><b>Design your week:</b> adjust meetings, focus blocks, and communication to reduce friction.</li>
+        <li><b>Retake:</b> if a letter feels off, retake in 2–4 weeks.</li>
+      </ul>
+    </div>
+  `;
+
+  return intro + dimCards + letterCards + workplace + life + next;
+}
+
+
+function generateReport() {
+  const profile = getProfile();
+  const baseDims = computeScores(false);
+
+  // Determine which dimensions need Part B (close call)
+  const needed = [];
+  if (needsFollowup(baseDims.EI)) needed.push("EI");
+  if (needsFollowup(baseDims.SN)) needed.push("SN");
+  if (needsFollowup(baseDims.TF)) needed.push("TF");
+  if (needsFollowup(baseDims.JP)) needed.push("JP");
+
+  // If Part B is needed but not rendered yet, render it and ask user to answer it.
+  const followupsWrap = document.getElementById("followups");
+  const hasAnyFollowupInputs = !!followupsWrap.querySelector('input[type="radio"][name^="fu_"]');
+
+  if (needed.length > 0 && !hasAnyFollowupInputs) {
+    buildFollowups(baseDims);
+    document.getElementById("status").innerHTML =
+      `<span class="warn">Your preferences are close on at least one dimension. Please answer the Precision Check questions (Part B), then click <b>Generate My Report</b> again.</span>`;
+    followupsWrap.scrollIntoView({behavior:"smooth", block:"start"});
+    return null;
+  }
+
+  // Validate Part B answers only for needed dimensions, WITHOUT rebuilding (so we don't wipe selections).
+  let followOk = true;
+  needed.forEach(dim => {
+    const count = FOLLOWUPS[dim].length;
+    for (let i=0;i<count;i++) {
+      const name = `fu_${dim}_${i}`;
+      const checked = document.querySelector(`input[type="radio"][name="${name}"]:checked`);
+      if (!checked) followOk = false;
+    }
+  });
+
+  if (!followOk) {
+    document.getElementById("status").innerHTML =
+      `<span class="warn">It looks like Part B is required for accuracy. Please answer all Precision Check questions shown (Part B), then generate again.</span>`;
+    followupsWrap.scrollIntoView({behavior:"smooth", block:"start"});
+    return null;
+  }
+
+  // Score including followups
+  const dims = computeScores(true);
+  const type = typeFromDims(dims);
+
+  document.getElementById("report").innerHTML = reportForType(type, profile, dims);
+  document.getElementById("status").innerHTML = `<span class="muted">Generated report for <b>${type}</b>. Scroll down to read it.</span>`;
+  document.getElementById("reportCard").scrollIntoView({behavior:"smooth", block:"start"});
+
+  const payload = { type, dims, profile, meta: { version: "mbti-style-reflection-v1.1" } };
+  window.__mbtiPayload = payload;
+  return payload;
+}
+
+function resetAll(
+) {
+  document.querySelectorAll('input[type="range"][name^="s_"]').forEach(sl => sl.value = "0");
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.getElementById("report").innerHTML = "";
+  document.getElementById("followups").innerHTML = "";
+  document.getElementById("status").innerHTML = `Fill out the profile section and answer the questions. Then click <b>Generate My Report</b>.`;
+  window.__mbtiPayload = null;
+  document.querySelectorAll('[id^="val_"]').forEach(v => v.textContent = "Neutral (0)");
+  buildFollowups(computeScores(false));
+}
+
+function exportJSON(payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "mbti_reflection_results.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function demoFillAndGenerate() {
+  document.getElementById("role").value = "Engineer / technical role";
+  document.getElementById("env").value = "hybrid";
+  document.getElementById("goal").value = "growth";
+  document.getElementById("collab").value = "mix";
+  document.getElementById("drain").value = "Too many meetings and context switching.";
+  document.getElementById("best").value = "Debugging, problem-solving, and improving systems.";
+
+  function setAll(dim, val) {
+    document.querySelectorAll(`.q[data-dim="${dim}"] input[type="range"]`).forEach(sl => {
+      sl.value = String(val);
+      const qid = sl.name.replace("s_","");
+      const lab = document.getElementById("val_" + qid);
+      if (lab) lab.textContent = val === 0 ? "Neutral (0)" : (val < 0 ? `Leaning Left (${val})` : `Leaning Right (+${val})`);
+    });
+  }
+  // Demo: ISTJ-ish (I, S, T, J)
+  setAll("EI", +2);
+  setAll("SN", -2);
+  setAll("TF", -2);
+  setAll("JP", -2);
+
+  const base = computeScores(false);
+  const needed = buildFollowups(base);
+  needed.forEach(dim => {
+    const count = FOLLOWUPS[dim].length;
+    for (let i=0;i<count;i++) {
+      const name = `fu_${dim}_${i}`;
+      const want = (dim==="EI") ? "+2" : "-2";
+      const sel = document.querySelector(`input[type="radio"][name="${name}"][value="${want}"]`);
+      if (sel) sel.checked = true;
+    }
+  });
+
+  generateReport();
+}
+
+document.getElementById("btnScore").addEventListener("click", generateReport);
+document.getElementById("btnReset").addEventListener("click", resetAll);
+document.getElementById("btnDemo").addEventListener("click", demoFillAndGenerate);
+document.getElementById("btnExport").addEventListener("click", () => {
+  if (!window.__mbtiPayload) {
+    document.getElementById("status").innerHTML = `<span class="warn">Generate a report first, then export.</span>`;
+    return;
+  }
+  exportJSON(window.__mbtiPayload);
+});
+document.getElementById("btnJumpReport").addEventListener("click", () => {
+  document.getElementById("reportCard").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+
+// --- Import JSON support ---
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || !data.type || !data.dims || !data.profile) {
+        throw new Error("Invalid file format");
+      }
+
+      // Restore profile
+      document.getElementById("role").value = data.profile.role || "";
+      document.getElementById("env").value = data.profile.env || "hybrid";
+      document.getElementById("goal").value = data.profile.goal || "growth";
+      document.getElementById("collab").value = data.profile.collab || "mix";
+      document.getElementById("drain").value = data.profile.drain || "";
+      document.getElementById("best").value = data.profile.best || "";
+
+      // Rebuild followups (in case needed)
+      buildFollowups(data.dims);
+
+      // Regenerate report directly
+      document.getElementById("report").innerHTML = reportForType(
+        data.type,
+        data.profile,
+        data.dims
+      );
+
+      window.__mbtiPayload = data;
+
+      document.getElementById("status").innerHTML =
+        `<span class="muted">Imported report for <b>${data.type}</b>.</span>`;
+
+      document.getElementById("reportCard").scrollIntoView({behavior:"smooth", block:"start"});
+    } catch (err) {
+      document.getElementById("status").innerHTML =
+        `<span class="warn">Failed to import JSON: ${err.message}</span>`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById("btnImport").addEventListener("click", () => {
+  document.getElementById("fileImport").click();
+});
+
+document.getElementById("fileImport").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file) importJSON(file);
+});
+
+
+buildQuestions();
+buildFollowups(computeScores(false));
+</script>
+</body>
+</html>
